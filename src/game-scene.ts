@@ -62,12 +62,21 @@ export default class GameScene {
         const index2_1 = (index1 + 1) % this.walkableArea.length
         const index2_2 = (index1 - 1 + this.walkableArea.length) % this.walkableArea.length
 
-        const vertex2 = vertexes.find(vertex => vertex.index === index2_1 || vertex.index === index2_2) || vertex1
-        const point2 = vertex2.point
+        const point2_1 = this.walkableArea[index2_1]
+        const point2_2 = this.walkableArea[index2_2]
 
-        const distancePercentage = vertex1.distance / (vertex1.distance + vertex2.distance)
-        const closestPoint = { x: point1.x + distancePercentage * (point2.x - point1.x), y: point1.y + distancePercentage * (point2.y - point1.y) }
-        return closestPoint || point
+        const distancePercentage_1 = vertex1.distance / (vertex1.distance + point2_1.distance(point))
+        const closestPoint_1 = { x: point1.x + distancePercentage_1 * (point2_1.x - point1.x), y: point1.y + distancePercentage_1 * (point2_1.y - point1.y) }
+
+        const distancePercentage_2 = vertex1.distance / (vertex1.distance + point2_2.distance(point))
+        const closestPoint_2 = { x: point1.x + distancePercentage_2 * (point2_2.x - point1.x), y: point1.y + distancePercentage_2 * (point2_2.y - point1.y) }
+
+        const distance_1 = p.dist(closestPoint_1.x, closestPoint_1.y, point.x, point.y)
+        const distance_2 = p.dist(closestPoint_2.x, closestPoint_2.y, point.x, point.y)
+        if (distance_1 < distance_2) {
+            return closestPoint_1
+        }
+        return closestPoint_2
     }
 
     preload() {
@@ -85,12 +94,15 @@ export default class GameScene {
     }
 
     draw() {
-        // this.background?.resize(0, p.height)
+        this.offset += this.character.x - this.offset - p.width / 2 / this.scale
+        const offsetMax = this.background.width - p.width / this.scale
+        if (this.offset > offsetMax) {
+            this.offset = offsetMax
+        }
+        if (this.offset < 0) {
+            this.offset = 0
+        }
         p.scale(this.scale)
-
-        const offsetMax = this.background.width * this.scale - p.width
-        const characterPercentage = (this.character.x * this.scale) / p.width
-        this.offset = characterPercentage * offsetMax
         // p.translate(-document.body.clientWidth / 2, -document.body.clientHeight / 2)
         p.translate(-this.offset, 0)
 
