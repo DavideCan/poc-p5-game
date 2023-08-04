@@ -51,8 +51,8 @@ export class ActivePoint implements IPointP5 {
         p.ellipse(this.x, this.y, this.diameter, this.diameter)
     }
 
-    isActivated() {
-        let d = p.dist(p.mouseX, p.mouseY, this.x, this.y)
+    isActivated(mousePosition: IPoint): boolean {
+        let d = p.dist(mousePosition.x, mousePosition.y, this.x, this.y)
         return d < this.diameter / 2
     }
 }

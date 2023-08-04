@@ -37,7 +37,6 @@ export default class Character implements IPoint {
             this.y += dirY * this.speed
         } else if (this.isMoving) {
             this.isMoving = false
-            // this.hasStoppedCallback()
         }
 
         p.ellipse(this.x, this.y, 50, 50)

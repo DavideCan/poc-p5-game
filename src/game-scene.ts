@@ -11,6 +11,9 @@ export default class GameScene {
     offset: number = 0
     character!: Character
 
+    originalHeight = 0
+    scale = 1
+
     constructor(activePoints: ActivePoint[], walkableArea: Point[]) {
         this.activePoints = activePoints
         if (walkableArea.length < 3) {
@@ -41,7 +44,7 @@ export default class GameScene {
         return isInside
     }
 
-    findClosestPointInside(point: IPointP5): IPoint {
+    findClosestPointInside(point: IPoint): IPoint {
         if (this.isPointInsideWalkableArea(point)) {
             console.log('point is inside walkable area')
             return point // The given point is already inside the area
@@ -49,7 +52,7 @@ export default class GameScene {
 
         const vertexes = this.walkableArea
             .map((walkableAreaPoint, i) => {
-                return { point: walkableAreaPoint, distance: point.distance(walkableAreaPoint), index: i }
+                return { point: walkableAreaPoint, distance: walkableAreaPoint.distance(point), index: i }
             })
             .sort((a, b) => a.distance - b.distance)
         const vertex1 = vertexes[0]
@@ -64,8 +67,6 @@ export default class GameScene {
 
         const distancePercentage = vertex1.distance / (vertex1.distance + vertex2.distance)
         const closestPoint = { x: point1.x + distancePercentage * (point2.x - point1.x), y: point1.y + distancePercentage * (point2.y - point1.y) }
-        console.log(closestPoint)
-
         return closestPoint || point
     }
 
@@ -73,17 +74,29 @@ export default class GameScene {
         this.background = p.loadImage('assets/img/DALL·E 2023-08-03 03.25.41 - a pixel art background of an adventure game.png')
     }
 
-    setup() {}
+    resize() {
+        this.scale = window.innerHeight / this.originalHeight
+    }
+
+    setup() {
+        this.originalHeight = this.background.height
+        this.scale = p.height / this.originalHeight
+        console.log('setup', this.scale)
+    }
 
     draw() {
-        this.background?.resize(0, p.height)
+        // this.background?.resize(0, p.height)
+        p.scale(this.scale)
 
         const offsetMax = this.background.width - p.width
         const characterPercentage = this.character.x / p.width
         this.offset = characterPercentage * offsetMax
-
+        // p.translate(-document.body.clientWidth / 2, -document.body.clientHeight / 2)
         p.translate(-this.offset, 0)
+
         p.image(this.background!, 0, 0)
+
+        // draw walkable area
         p.fill(255, 255, 255, 125)
         p.beginShape()
         for (let point of this.walkableArea) {
@@ -91,22 +104,36 @@ export default class GameScene {
             p.vertex(point.x, point.y)
         }
         p.endShape(p.CLOSE)
+
+        // draw active points if the mouse is inside the active point itself
         for (let point of this.activePoints) {
-            point.draw()
+            if (point.isActivated(this.getAdjustedMousePosition())) {
+                point.draw()
+            }
+            // point.draw()
         }
+
+        // draw cursor
+        p.fill(255, 0, 0, 255)
+        const adjustedMousePosition = this.getAdjustedMousePosition()
+        p.ellipse(adjustedMousePosition.x, adjustedMousePosition.y, 10, 10)
 
         this.character.draw()
     }
 
     getDestination(): IPoint {
-        const position = this.findClosestPointInside(new Point(p.mouseX + this.offset, p.mouseY))
+        const position = this.findClosestPointInside(this.getAdjustedMousePosition())
         return position
+    }
+
+    getAdjustedMousePosition(): IPoint {
+        return { x: p.mouseX / this.scale + this.offset, y: p.mouseY / this.scale }
     }
 
     checkForPointActivation() {
         this.character.destination = this.getDestination()
         for (let point of this.activePoints) {
-            if (point.isActivated()) {
+            if (point.isActivated(this.getAdjustedMousePosition())) {
                 point.color = p.color(0, 0, 255)
             }
         }
