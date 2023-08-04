@@ -88,8 +88,8 @@ export default class GameScene {
         // this.background?.resize(0, p.height)
         p.scale(this.scale)
 
-        const offsetMax = this.background.width - p.width
-        const characterPercentage = this.character.x / p.width
+        const offsetMax = this.background.width * this.scale - p.width
+        const characterPercentage = (this.character.x * this.scale) / p.width
         this.offset = characterPercentage * offsetMax
         // p.translate(-document.body.clientWidth / 2, -document.body.clientHeight / 2)
         p.translate(-this.offset, 0)
@@ -123,6 +123,8 @@ export default class GameScene {
 
     getDestination(): IPoint {
         const position = this.findClosestPointInside(this.getAdjustedMousePosition())
+        // this.activePoints.push(new ActivePoint(position.x, position.y, 50, p.color(255, 0, 0, 255)))
+
         return position
     }
 
