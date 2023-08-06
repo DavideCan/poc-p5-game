@@ -5,7 +5,8 @@
     "private": true,
     "scripts": {
         "start": "webpack serve --open",
-        "build": "webpack --mode production"
+        "build": "webpack --mode production",
+        "deploy": "firebase deploy"
     },
     "author": "",
     "license": "MIT",
