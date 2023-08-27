@@ -1,18 +1,15 @@
 import p5 from 'p5'
 
-import Point, { ActivePoint, IPoint, IPointP5 } from './point'
-import { p } from './main'
+import Point, { ActivePoint, IPoint } from './point'
+import { p, game } from './main'
 import Character from './character'
 
 export default class GameScene {
     activePoints: ActivePoint[]
     background!: p5.Image
     walkableArea: Point[]
-    offset: number = 0
     character!: Character
-
-    originalHeight = 0
-    scale = 1
+    originalBackgroundHeight = 0
 
     constructor(activePoints: ActivePoint[], walkableArea: Point[]) {
         this.activePoints = activePoints
@@ -83,29 +80,11 @@ export default class GameScene {
         this.background = p.loadImage('assets/img/DALL·E 2023-08-03 03.25.41 - a pixel art background of an adventure game.png')
     }
 
-    resize() {
-        this.scale = window.innerHeight / this.originalHeight
-    }
-
     setup() {
-        this.originalHeight = this.background.height
-        this.scale = p.height / this.originalHeight
-        console.log('setup', this.scale)
+        this.originalBackgroundHeight = this.background.height
     }
 
     draw() {
-        this.offset += this.character.x - this.offset - p.width / 2 / this.scale
-        const offsetMax = this.background.width - p.width / this.scale
-        if (this.offset > offsetMax) {
-            this.offset = offsetMax
-        }
-        if (this.offset < 0) {
-            this.offset = 0
-        }
-        p.scale(this.scale)
-        // p.translate(-document.body.clientWidth / 2, -document.body.clientHeight / 2)
-        p.translate(-this.offset, 0)
-
         p.image(this.background!, 0, 0)
 
         // draw walkable area
@@ -119,35 +98,26 @@ export default class GameScene {
 
         // draw active points if the mouse is inside the active point itself
         for (let point of this.activePoints) {
-            if (point.isActivated(this.getAdjustedMousePosition())) {
+            if (point.isActivated(game.getAdjustedMousePosition())) {
                 point.draw()
             }
             // point.draw()
         }
 
-        // draw cursor
-        p.fill(255, 0, 0, 255)
-        const adjustedMousePosition = this.getAdjustedMousePosition()
-        p.ellipse(adjustedMousePosition.x, adjustedMousePosition.y, 10, 10)
-
         this.character.draw()
     }
 
     getDestination(): IPoint {
-        const position = this.findClosestPointInside(this.getAdjustedMousePosition())
+        const position = this.findClosestPointInside(game.getAdjustedMousePosition())
         // this.activePoints.push(new ActivePoint(position.x, position.y, 50, p.color(255, 0, 0, 255)))
 
         return position
     }
 
-    getAdjustedMousePosition(): IPoint {
-        return { x: p.mouseX / this.scale + this.offset, y: p.mouseY / this.scale }
-    }
-
     checkForPointActivation() {
         this.character.destination = this.getDestination()
         for (let point of this.activePoints) {
-            if (point.isActivated(this.getAdjustedMousePosition())) {
+            if (point.isActivated(game.getAdjustedMousePosition())) {
                 point.color = p.color(0, 0, 255)
             }
         }
